@@ -13,8 +13,11 @@ public class GridManagement : MonoBehaviour
     [SerializeField]
     private int numberOfStartingRows;
 
-    float size = 1.25f; //Size of the objects
+    private float size = 1.25f; //Size of the objects
     private bool[,] gridArray = new bool[10, 5];  //Create a 2D array for keeping track of grid units
+    private GameObject[,] objectGrid = new GameObject[10, 5];
+    private float startingXPos = 0f;
+    private float startingYPos = 5f;
 
 
     private void Start()
@@ -30,8 +33,8 @@ public class GridManagement : MonoBehaviour
         int gridArrayRow = 0; //For selecting row of gridArray
         int gridArrayColumn = 0; //For selecting the column of the gridArray
         int numberOfRowsFilled=0;
-        float xPos = 0f; //xPosition of an object
-        float yPos = 5f; //yPosition of an object
+        float xPos = startingXPos; //xPosition of an object
+        float yPos = startingYPos; //yPosition of an object
 
         for (int i = 0; i < numberOfGridUnits; i++)
         {
@@ -46,6 +49,7 @@ public class GridManagement : MonoBehaviour
                 newObject.transform.position = new Vector2(xPos, yPos); //Sets object to proper position
                 //==========================================================================
                 xPos += size;
+                objectGrid[gridArrayRow, gridArrayColumn] = newObject;
                 gridArray[gridArrayRow, gridArrayColumn] = true; //Sets gridArray index as true
                 gridArrayColumn++;
             }
@@ -56,6 +60,7 @@ public class GridManagement : MonoBehaviour
                     newObject = Instantiate(sampleObject, transform); //Creates objects to fill grid
                     newObject.GetComponent<SpriteRenderer>().color = Random.ColorHSV(); //Gives Square random color
                     newObject.transform.position = new Vector2(xPos, yPos); //Sets object to proper position
+                    objectGrid[gridArrayRow, gridArrayColumn] = newObject;
                     gridArray[gridArrayRow, gridArrayColumn] = true; //Sets gridArray index as false
                 }
                 xPos = 0;
@@ -66,6 +71,7 @@ public class GridManagement : MonoBehaviour
             }
             else
             {
+                objectGrid[gridArrayRow, gridArrayColumn] = newObject;
                 gridArray[gridArrayRow, gridArrayColumn] = false; //Sets gridArray index as false
                 if ((i + 1) %numberOfColumns != 0) //If square is not in last column
                 {
@@ -98,5 +104,89 @@ public class GridManagement : MonoBehaviour
             arrayString += System.Environment.NewLine; //Start a new line for a new row
         }
         Debug.Log(arrayString);
+    }
+
+    public void rowRight(int row) //Moves all units in a row right, until there are no blank spaces on the rightmost column
+    {
+        bool allEmpty=true;
+        bool tempBool = false; //Meant to store the rightmost value when rotating
+        GameObject tempObject= null; //Meant to store the rightmost object when rotating
+
+        for (int x = 0; x < numberOfColumns ; x++) //Iterate through all grid units in row
+        {
+            if (gridArray[row, x] == true) //If one of the units has an image
+            {
+                allEmpty = false; //All Empty is false
+            }
+        }
+
+        if (allEmpty == false) //As long as at least one unit in the row has an image...
+        {
+            for (int i = numberOfColumns - 1; i >= 0; i--) //For each unit in the row
+            {
+                if(i==numberOfColumns-1) //For the object furthest right
+                {
+                    objectGrid[row, i].transform.position = new Vector3(startingXPos, startingYPos - (row * size));
+                    tempObject = objectGrid[row, i];
+                    tempBool = gridArray[row, i];
+                    objectGrid[row, i] = objectGrid[row, i - 1];
+                    gridArray[row, i] = gridArray[row, i - 1];
+                }
+                else if(i==0) // For the object furthest left
+                {
+                    objectGrid[row, i].transform.position = new Vector3((i * size) + size, startingYPos - (row * size));
+                    objectGrid[row, i] = tempObject;
+                    gridArray[row, i] = tempBool;
+                }
+                else
+                {
+                    objectGrid[row, i].transform.position = new Vector3((i * size) + size, startingYPos - (row * size));
+                    objectGrid[row, i] = objectGrid[row,i-1];
+                    gridArray[row, i] = gridArray[row,i-1];
+                }
+            }
+        }
+    }
+
+    public void rowLeft(int row) //Moves all units in a row right, until there are no blank spaces on the rightmost column
+    {
+        bool allEmpty = true;
+        bool tempBool = false; //Meant to store the rightmost value when rotating
+        GameObject tempObject = null; //Meant to store the rightmost object when rotating
+
+        for (int x = 0; x < numberOfColumns; x++) //Iterate through all grid units in row
+        {
+            if (gridArray[row, x] == true) //If one of the units has an image
+            {
+                allEmpty = false; //All Empty is false
+            }
+        }
+
+        if (allEmpty == false) //As long as at least one unit in the row has an image...
+        {
+            for (int i = 0; i <= numberOfColumns - 1; i++) //For each unit in the row
+            {
+                if (i == 0) //For the object furthest left
+                {
+                    objectGrid[row, i].transform.position = new Vector3(startingXPos+((numberOfColumns*size)-size), startingYPos - (row * size));
+                    tempObject = objectGrid[row, i];
+                    tempBool = gridArray[row, i];
+                    objectGrid[row, i] = objectGrid[row, i + 1];
+                    gridArray[row, i] = gridArray[row, i + 1];
+                }
+                else if (i == numberOfColumns-1) // For the object furthest right
+                {
+                    objectGrid[row, i].transform.position = new Vector3((i*size)-size, startingYPos - (row * size));
+                    objectGrid[row, i] = tempObject;
+                    gridArray[row, i] = tempBool;
+                }
+                else
+                {
+                    objectGrid[row, i].transform.position = new Vector3((i * size) - size, startingYPos - (row * size));
+                    objectGrid[row, i] = objectGrid[row, i + 1];
+                    gridArray[row, i] = gridArray[row, i + 1];
+                }
+            }
+        }
     }
 }
